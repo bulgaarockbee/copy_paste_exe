@@ -1,0 +1,33 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio settings
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build results
+*.exe
+*.dll
+*.pdb
+
+# Other IDE/cache stuff
+*.cache
+*.ide
+*.dbmdl
+
+# Optional: if using ReSharper, Rider, etc.
+_ReSharper*/
+.idea/
+*.DotSettings.user
+
+# Publish output
+publish/

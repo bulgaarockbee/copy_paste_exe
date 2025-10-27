@@ -28,6 +28,9 @@ class PasteToWindowForm : Form
     private readonly Button aiSummarize;
     private string WindowTitle;
     private string WindowClass;
+    private string ButtonType;
+    private string PressCount;
+    private string Delay;
     internal static readonly string[] items =
         [
             "SOAP(アシスト)"
@@ -38,17 +41,19 @@ class PasteToWindowForm : Form
         Text = "S.O.A.Pコピー";
         Width = 720;
         Height = 780;
+        Load += PasteToWindowFormm_Load;
 
         Button settingsButton = new()
         {
-            Text = "⚙️",
+            Text = "",
             Left = 650,
             Top = 10,
             Width = 30,
             Height = 30,
-            BackColor = Color.LightGray,
-            FlatStyle = FlatStyle.Flat
         };
+        settingsButton.Image = Image.FromFile("settings.png");
+        settingsButton.Image = new Bitmap(settingsButton.Image, new Size(30, 30));
+        settingsButton.ImageAlign = ContentAlignment.MiddleCenter;
 
         insertVoiceText = new Button()
         {
@@ -167,6 +172,9 @@ class PasteToWindowForm : Form
             {
                 WindowTitle = settingsForm.WindowTitle;
                 WindowClass = settingsForm.WindowClass;
+                ButtonType = settingsForm.ButtonType;
+                PressCount = settingsForm.PressCount;
+                Delay = settingsForm.Delay;
             }
         };
 
@@ -268,10 +276,42 @@ class PasteToWindowForm : Form
             // 次のフィールドに移動する（最後のフィールドの後を除く）
             if (i < texts.Length - 1)
             {
-                Thread.Sleep(200); // タブの前に200msの遅延
-                SendKeys.SendWait("{TAB}");
+                int pressCountInt = int.Parse(PressCount);
+                for (int j = 0; j < pressCountInt; j++)
+                {
+                    int delayInt = int.Parse(Delay);
+                    Thread.Sleep(delayInt); // 遷移の前に遅延
+                    switch (ButtonType?.Trim().ToLower())
+                    {
+                        case "tab":
+                            SendKeys.SendWait("{TAB}");
+                            break;
+                        case "shift":
+                            SendKeys.SendWait("+");
+                            break;
+                        case "ctrl":
+                            SendKeys.SendWait("^");
+                            break;
+                        case "alt":
+                            SendKeys.SendWait("%");
+                            break;
+                        default:
+                            MessageBox.Show("設定で項目遷移を設定してください");
+                            break;
+                    }
+                }
             }
         }
+    }
+
+    private void PasteToWindowFormm_Load(object sender, EventArgs e)
+    {
+        var settings = AppSettings.Get();
+        WindowTitle = settings.CurrentWindowTitle;
+        WindowClass = settings.CurrentWindowClass;
+        ButtonType = settings.CurrentButtonType;
+        PressCount = settings.CurrentPressCount;
+        Delay = settings.CurrentDelay;
     }
 
     [STAThread]

@@ -4,8 +4,11 @@ using System.Text.Json;
 
 public class AppSettingsModel
 {
-    public string WindowTitle { get; set; } = "";
-    public string WindowClass { get; set; } = "";
+    public string CurrentWindowTitle { get; set; } = "";
+    public string CurrentWindowClass { get; set; } = "";
+    public string CurrentButtonType { get; set; } = "";
+    public string CurrentPressCount { get; set; } = "";
+    public string CurrentDelay { get; set; } = "";
 }
 
 public static class AppSettings

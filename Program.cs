@@ -3,12 +3,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using System.Drawing;
+using App.Utils;
 
-class PasteToChromeForm : Form
+class PasteToWindowForm : Form
 {
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -18,41 +16,30 @@ class PasteToChromeForm : Form
     [DllImport("user32.dll")]
     private static extern bool IsIconic(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
-
-    [DllImport("user32.dll")]
-    private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder text, int count);
-
-    [DllImport("user32.dll")]
-    private static extern bool IsWindowVisible(IntPtr hWnd);
-
-    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-
     const int SW_RESTORE = 9;
 
-    private TextBox subjectiveBox;
-    private TextBox objectiveBox;
-    private TextBox assessmentBox;
-    private TextBox planBox;
-    private TextBox titleBox;
-    private TextBox classBox;
-    private TextBox voiceTextBox;
-    private Button pasteButton;
-    private Button windowCheckButton;
-    private Button insertVoiceText;
-    private Button aiSummarize;
+    private readonly TextBox subjectiveBox;
+    private readonly TextBox objectiveBox;
+    private readonly TextBox assessmentBox;
+    private readonly TextBox planBox;
+    private readonly TextBox voiceTextBox;
+    private readonly Button pasteButton;
+    private readonly Button insertVoiceText;
+    private readonly Button aiSummarize;
+    private string WindowTitle;
+    private string WindowClass;
+    internal static readonly string[] items =
+        [
+            "SOAP(アシスト)"
+        ];
 
-    public PasteToChromeForm()
+    public PasteToWindowForm()
     {
-        this.Text = "S.O.A.Pコピー";
-        this.Width = 720;
-        this.Height = 780;
+        Text = "S.O.A.Pコピー";
+        Width = 720;
+        Height = 780;
 
-        Button settingsButton = new Button()
+        Button settingsButton = new()
         {
             Text = "⚙️",
             Left = 650,
@@ -78,7 +65,7 @@ class PasteToChromeForm : Form
         insertVoiceText.FlatAppearance.BorderColor = Color.Black;
         insertVoiceText.FlatAppearance.BorderSize = 1;
 
-        Label lblVoiceText = new Label() { Text = "音声書き起こし:", Left = 10, Top = 50, Width = 300 };
+        Label lblVoiceText = new() { Text = "音声書き起こし:", Left = 10, Top = 50, Width = 300 };
         voiceTextBox = new TextBox()
         {
             Left = 10,
@@ -89,7 +76,7 @@ class PasteToChromeForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
-        ComboBox colorDropdown = new ComboBox()
+        ComboBox colorDropdown = new()
         {
             Left = 200,
             Top = 185,
@@ -97,10 +84,7 @@ class PasteToChromeForm : Form
             DropDownStyle = ComboBoxStyle.DropDownList
         };
 
-        colorDropdown.Items.AddRange(new string[]
-        {
-            "SOAP(アシスト)"
-        });
+        colorDropdown.Items.AddRange(items);
 
         aiSummarize = new Button()
         {
@@ -117,7 +101,7 @@ class PasteToChromeForm : Form
         aiSummarize.FlatAppearance.BorderColor = Color.Black;
         aiSummarize.FlatAppearance.BorderSize = 1;
 
-        Label lblS = new Label() { Text = "主観的情報（Subjective）:", Left = 10, Top = 210, Width = 300 };
+        Label lblS = new() { Text = "主観的情報（Subjective）:", Left = 10, Top = 210, Width = 300 };
         subjectiveBox = new TextBox()
         {
             Left = 10,
@@ -128,7 +112,7 @@ class PasteToChromeForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
-        Label lblO = new Label() { Text = "客観的情報（Objective）:", Left = 10, Top = 320, Width = 300 };
+        Label lblO = new() { Text = "客観的情報（Objective）:", Left = 10, Top = 320, Width = 300 };
         objectiveBox = new TextBox()
         {
             Left = 10,
@@ -139,7 +123,7 @@ class PasteToChromeForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
-        Label lblA = new Label() { Text = "評価（Assessment）:", Left = 10, Top = 430, Width = 300 };
+        Label lblA = new() { Text = "評価（Assessment）:", Left = 10, Top = 430, Width = 300 };
         assessmentBox = new TextBox()
         {
             Left = 10,
@@ -150,7 +134,7 @@ class PasteToChromeForm : Form
             ScrollBars = ScrollBars.Vertical
         };
 
-        Label lblP = new Label() { Text = "計画（Plan）:", Left = 10, Top = 540, Width = 300 };
+        Label lblP = new() { Text = "計画（Plan）:", Left = 10, Top = 540, Width = 300 };
         planBox = new TextBox()
         {
             Left = 10,
@@ -178,8 +162,12 @@ class PasteToChromeForm : Form
 
         settingsButton.Click += (sender, e) =>
         {
-            SettingsForm settingsForm = new SettingsForm();
-            settingsForm.ShowDialog();  // Show as modal popup
+            using SettingsForm settingsForm = new();
+            if (settingsForm.ShowDialog() == DialogResult.OK)
+            {
+                WindowTitle = settingsForm.WindowTitle;
+                WindowClass = settingsForm.WindowClass;
+            }
         };
 
         insertVoiceText.Click += (sender, e) =>
@@ -195,52 +183,34 @@ class PasteToChromeForm : Form
             planBox.Text = "アムロジピンによるめまいについて説明、起立時注意を指導服薬コンプライアンス向上指導ロスバスタチン導入時（筋肉痛に注意）について説明グレープフルーツジュース（CYP3A4阻害）回避を指導コンプライアンス向上のため一包化を検討　一包化指導中";
         };
 
-        pasteButton.Click += (s, e) => PasteToChrome();
+        pasteButton.Click += (s, e) => PasteToWindow();
 
-        this.Controls.Add(settingsButton);
-        this.Controls.Add(insertVoiceText);
-        this.Controls.Add(lblVoiceText);
-        this.Controls.Add(voiceTextBox);
-        this.Controls.Add(colorDropdown);
-        this.Controls.Add(aiSummarize);
-        this.Controls.Add(lblS);
-        this.Controls.Add(subjectiveBox);
-        this.Controls.Add(lblO);
-        this.Controls.Add(objectiveBox);
-        this.Controls.Add(lblA);
-        this.Controls.Add(assessmentBox);
-        this.Controls.Add(lblP);
-        this.Controls.Add(planBox);
-        this.Controls.Add(pasteButton);
+        Controls.Add(settingsButton);
+        Controls.Add(insertVoiceText);
+        Controls.Add(lblVoiceText);
+        Controls.Add(voiceTextBox);
+        Controls.Add(colorDropdown);
+        Controls.Add(aiSummarize);
+        Controls.Add(lblS);
+        Controls.Add(subjectiveBox);
+        Controls.Add(lblO);
+        Controls.Add(objectiveBox);
+        Controls.Add(lblA);
+        Controls.Add(assessmentBox);
+        Controls.Add(lblP);
+        Controls.Add(planBox);
+        Controls.Add(pasteButton);
     }
 
-    private void CheckWindow()
+    private void PasteToWindow()
     {
-        IntPtr hWnd = FindWindowByClassAndTitle();
-        if (hWnd == IntPtr.Zero)
-        {
-            MessageBox.Show("貼付対象ウィンドウが見つかりません。まずウィンドウを開くまたはタイトルやクラス名を直してください。", "ウィンドウが見つかりません",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
-
-        // Chromeを復元してフォーカスする
-        if (IsIconic(hWnd))
-        {
-            ShowWindow(hWnd, SW_RESTORE);
-        }
-        SetForegroundWindow(hWnd);
-    }
-
-    private void PasteToChrome()
-    {
-        string[] texts = new string[]
-        {
+        string[] texts =
+        [
             subjectiveBox.Text,
             objectiveBox.Text,
             assessmentBox.Text,
             planBox.Text
-        };
+        ];
 
         // 少なくとも1つのフィールドにコンテンツがあるかどうかを確認
         bool hasContent = false;
@@ -260,9 +230,8 @@ class PasteToChromeForm : Form
             return;
         }
 
-        // Chrome ウィンドウを探す
-        // IntPtr hWnd = FindChromeWindow();
-        IntPtr hWnd = FindWindowByClassAndTitle();
+        // 貼付対象ウィンドウを探す
+        IntPtr hWnd = WindowHelpers.FindWindowByClassAndTitle(WindowClass, WindowTitle);
         if (hWnd == IntPtr.Zero)
         {
             MessageBox.Show("貼付対象ウィンドウが見つかりません。まずウィンドウを開くまたはタイトルやクラス名を直してください。", "ウィンドウが見つかりません",
@@ -270,21 +239,21 @@ class PasteToChromeForm : Form
             return;
         }
 
-        // Chromeを復元してフォーカスする
+        // 貼付対象ウィンドウを復元してフォーカスする
         if (IsIconic(hWnd))
         {
             ShowWindow(hWnd, SW_RESTORE);
         }
         SetForegroundWindow(hWnd);
-        Thread.Sleep(300); // Chromeがフォーカスされるまで待ち
+        Thread.Sleep(300); //  貼付対象ウィンドウがフォーカスされるまで待ち
 
         // 各フィールドを200ミリ秒の遅延で貼り付けます
         for (int i = 0; i < texts.Length; i++)
         {
-            
+
             // フィールドが空の場合はスペースを使用
             string textToPaste = string.IsNullOrWhiteSpace(texts[i]) ? " " : texts[i];
-            
+
             // STAスレッドでクリップボードを設定
             var t = new Thread(() => Clipboard.SetText(textToPaste));
             t.SetApartmentState(ApartmentState.STA);
@@ -309,6 +278,6 @@ class PasteToChromeForm : Form
     static void Main()
     {
         Application.EnableVisualStyles();
-        Application.Run(new PasteToChromeForm());
+        Application.Run(new PasteToWindowForm());
     }
 }

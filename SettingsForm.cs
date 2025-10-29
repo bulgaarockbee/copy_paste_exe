@@ -19,8 +19,8 @@ public class SettingsForm : Form
 
     private readonly TextBox titleBox;
     private readonly TextBox classBox;
-    private readonly TextBox pressCountBox;
-    private readonly TextBox delayBox;
+    private readonly NumericUpDown pressCountBox;
+    private readonly NumericUpDown delayBox;
     private readonly Button windowCheckButton;
     private readonly Button windowSelectButton;
     private RadioButton rbOption1;
@@ -42,7 +42,7 @@ public class SettingsForm : Form
     {
         Text = "設定";
         Width = 480;
-        Height = 520;
+        Height = 400;
         StartPosition = FormStartPosition.CenterParent;
         Load += SettingsForm_Load;
 
@@ -79,7 +79,7 @@ public class SettingsForm : Form
         windowSelectButton = new Button()
         {
             Text = "選択",
-            Left = 100,
+            Left = 140,
             Top = 110,
             Width = 90,
             Height = 30,
@@ -94,7 +94,7 @@ public class SettingsForm : Form
         windowCheckButton = new Button()
         {
             Text = "チェック",
-            Left = 200,
+            Left = 240,
             Top = 110,
             Width = 90,
             Height = 30,
@@ -123,30 +123,34 @@ public class SettingsForm : Form
 
         Label lblPressCount = new() { Text = "回数：", Left = 30, Top = 220, Width = 50 };
 
-        pressCountBox = new TextBox()
+        pressCountBox = new NumericUpDown()
         {
             Left = 80,
             Top = 220,
-            Width = 40,
+            Width = 50,
             Height = 20,
-            Multiline = true,
+            Maximum = 10
         };
+
+        Label lblPressCountUnit = new() { Text = "回", Left = 130, Top = 220, Width = 20 };
 
         Label lblDelay = new() { Text = "待機：", Left = 30, Top = 250, Width = 50 };
 
-        delayBox = new TextBox()
+        delayBox = new NumericUpDown()
         {
             Left = 80,
             Top = 250,
-            Width = 40,
+            Width = 50,
             Height = 20,
-            Multiline = true,
+            Maximum = 10000
         };
+
+        Label lblDelayUnit = new() { Text = "ms", Left = 130, Top = 250, Width = 20 };
 
         Button saveButton = new()
         {
             Text = "保存",
-            Left = 220,
+            Left = 190,
             Top = 300,
             Width = 90,
             Height = 30,
@@ -183,15 +187,17 @@ public class SettingsForm : Form
         Controls.Add(windowSelectButton);
         Controls.Add(windowCheckButton);
         Controls.Add(lblCursorMovementSetting);
+        Controls.Add(lblButtonType);
         Controls.Add(rbOption1);
         Controls.Add(rbOption2);
         Controls.Add(rbOption3);
         Controls.Add(rbOption4);
-        Controls.Add(lblButtonType);
         Controls.Add(lblPressCount);
         Controls.Add(pressCountBox);
+        Controls.Add(lblPressCountUnit);
         Controls.Add(lblDelay);
         Controls.Add(delayBox);
+        Controls.Add(lblDelayUnit);
         Controls.Add(saveButton);
     }
 
@@ -228,8 +234,12 @@ public class SettingsForm : Form
         var settings = AppSettings.Get();
         titleBox.Text = settings.CurrentWindowTitle;
         classBox.Text = settings.CurrentWindowClass;
-        pressCountBox.Text = settings.CurrentPressCount;
-        delayBox.Text = settings.CurrentDelay;
+        pressCountBox.Text = string.IsNullOrEmpty(settings.CurrentPressCount)
+            ? "1"
+            : settings.CurrentPressCount;
+        delayBox.Text = string.IsNullOrEmpty(settings.CurrentDelay)
+            ? "200"
+            : settings.CurrentDelay;
         switch (settings.CurrentButtonType)
         {
             case var s when s == rbOption1.Text:
@@ -245,8 +255,8 @@ public class SettingsForm : Form
                 rbOption4.Checked = true;
                 break;
             default:
-                // すべてのチェックを外します
-                rbOption1.Checked = rbOption2.Checked = rbOption3.Checked = rbOption4.Checked = false;
+                // タブをチェック
+                rbOption4.Checked = true;
                 break;
         }
 

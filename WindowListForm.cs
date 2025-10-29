@@ -23,7 +23,7 @@ public class WindowListForm : Form
         listBox = new ListBox { Left = 10, Top = 10, Width = 560, Height = 300 };
         cancelButton = new Button { Left = 10, Top = 320, Width = 100, Text = "キャンセル" };
         okButton = new Button { Left = 120, Top = 320, Width = 100, Text = "選択" };
-        okButton.Click += cancelButton_Click;
+        cancelButton.Click += cancelButton_Click;
         okButton.Click += OkButton_Click;
 
         Controls.Add(listBox);

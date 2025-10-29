@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using System.Drawing;
+using System.IO;
 using App.Utils;
 
 class PasteToWindowForm : Form
@@ -40,7 +41,7 @@ class PasteToWindowForm : Form
     {
         Text = "S.O.A.Pコピー";
         Width = 720;
-        Height = 780;
+        Height = 750;
         Load += PasteToWindowFormm_Load;
 
         Button settingsButton = new()
@@ -152,7 +153,7 @@ class PasteToWindowForm : Form
 
         pasteButton = new Button()
         {
-            Text = "貼り付ける",
+            Text = "SOAP貼付",
             Left = 300,
             Top = 660,
             Width = 100,
@@ -317,7 +318,14 @@ class PasteToWindowForm : Form
     [STAThread]
     static void Main()
     {
-        Application.EnableVisualStyles();
-        Application.Run(new PasteToWindowForm());
+        try
+        {
+            Application.EnableVisualStyles();
+            Application.Run(new PasteToWindowForm());
+        }
+        catch (Exception ex)
+        {
+            File.WriteAllText("error.log", ex.ToString());
+        }
     }
 }
